@@ -15,25 +15,26 @@ class PolyGen(object):
         self.img = Image.new(src.mode, src.size, (255,255,255))
         self.val = 0
         self.src = src
+        self.recalc = 1
     def calc_val(self):
         diff = ImageChops.difference(self.img, self.src)
         h = diff.histogram()
         sq = (value*(idx**2) for idx, value in enumerate(h))
         sum_of_squares = sum(sq)
         self.val = math.sqrt(sum_of_squares/float(self.img.size[0] * self.img.size[1]))
-        
+        self.recalc = 0
     def add_polygon(self,polygon,color):
         self.polygons.append(polygon)
         self.colors.append(color)
         draw = ImageDraw.Draw(self.img)
         draw.polygon(polygon, color, color)
-    
+        self.recalc = 1
     def redraw(self):
         self.img = Image.new(self.src.mode, self.src.size, (255,255,255))
         draw = ImageDraw.Draw(self.img)
         for i in range(0,len(self.polygons)):
             draw.polygon(self.polygons[i], self.colors[i], self.colors[i])
-        
+        self.recalc = 1
     def mutate(self):
         if random.randint(0,100) < 20:
             if random.randint(0,100) < 50:
@@ -45,7 +46,8 @@ class PolyGen(object):
                                                        random.randint(0,255),
                                                        random.randint(0,255))
             self.redraw()
-                
+            self.recalc = 1
+
     def pair(self, partner):
         self.r = random.sample(range(0,len(self.polygons)),len(self.polygons)/2)
         child = PolyGen(self.src)
@@ -90,7 +92,8 @@ def evolve(population, steps):
         '''
         for i in range(0,len(population)):
             population[i].mutate()
-            population[i].calc_val()
+            if population[i].recalc == 1:
+                population[i].calc_val()
         
         population = sorted(population, key=lambda gen: gen.val)
 
