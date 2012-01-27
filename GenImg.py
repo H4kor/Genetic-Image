@@ -4,7 +4,7 @@ Created on 26.01.2012
 @author: h4kor
 '''
 import Image, ImageChops, ImageDraw
-import math, random
+import math, random, threading
 
 
 class PolyGen(object):
@@ -37,33 +37,68 @@ class PolyGen(object):
     def mutate(self):
         if random.randint(0,100) < 20:
             if random.randint(0,100) < 50:
-                self.polygons[random.randint(0,19)] = [random.randint(0,70),random.randint(0,70),
-                                                       random.randint(0,70),random.randint(0,70),
-                                                       random.randint(0,70),random.randint(0,70)]
+                self.polygons[random.randint(0,len(self.polygons)-1)] = [random.randint(0,self.src.size[0]),random.randint(0,self.src.size[1]),
+                                                       random.randint(0,self.src.size[0]),random.randint(0,self.src.size[1]),
+                                                       random.randint(0,self.src.size[0]),random.randint(0,self.src.size[1])]
             else:
-                self.colors[random.randint(0,19)] = (random.randint(0,255),
+                self.colors[random.randint(0,len(self.colors)-1)] = (random.randint(0,255),
                                                        random.randint(0,255),
                                                        random.randint(0,255))
             self.redraw()
                 
     def pair(self, partner):
+        self.r = random.sample(range(0,len(self.polygons)),len(self.polygons)/2)
         child = PolyGen(self.src)
         for i in range(0,len(self.polygons)):
-            if i % 2 == 0:
+            if i in self.r:
                 child.add_polygon(self.polygons[i],self.colors[i])
             else:
                 child.add_polygon(partner.polygons[i],partner.colors[i])
         return child
+    
+    def copy(self):
+        ret = PolyGen(self.src);
+        ret.polygons = self.polygons[:]
+        ret.colors = self.colors[:]
+        ret.redraw()
+        return ret
 
+class GenThread (threading.Thread):
+    def __init__(self,g):
+        self.gs = g
+        threading.Thread.__init__(self)
+    def run(self):
+        for g in self.gs:
+            g.mutate()
+            g.calc_val()
+    def setGen(self,g):
+        self.g = g
+        
 def evolve(population, steps):
+    t = [0,0,0,0]
     for i in range(0,steps):
         print i,": ",population[0].val
+        
+        '''
+        stepsize = len(population)/4
+        for i in range(0,4):
+            t[i] = GenThread(population[stepsize*i:stepsize*(i+1)])
+            t[i].start()
+            
+        for tt in t:
+            tt.join()
+        '''
         for i in range(0,len(population)):
             population[i].mutate()
             population[i].calc_val()
+        
         population = sorted(population, key=lambda gen: gen.val)
-        for i in range(0,10):
-            population[i+10] = population[i].pair(population[i+1])
+
+        for i in range(0,len(population)/4):
+            population[i+len(population)/4] = population[i].pair(population[i+1])
+            population[i+2*len(population)/4] = population[i].pair(population[i+1])
+            population[i+3*len(population)/4] = population[i].pair(population[i+1])
+            
     population = sorted(population, key=lambda gen: gen.val)
     population[0].img.save("finish.png")   
     return population

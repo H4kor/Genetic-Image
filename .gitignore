@@ -2,3 +2,4 @@
 .pydevproject
 *.png
 *.jpg
+*.pyc

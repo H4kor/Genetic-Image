@@ -12,10 +12,14 @@ import Image
 import random
 import GenImg
 
-amount_img = 50     #How many genetic images
-amount_poly = 30    #How many polygons per image
+amount_img = 80    #How many genetic images
+amount_poly = 15    #How many polygons per image
+
+
+#img_name = raw_input("File name: ")
 
 src = Image.open("opera.png")
+src.save("mod.png")
 width, height = src.size 
 
 gens = []
