@@ -12,14 +12,13 @@ import Image
 import random
 import GenImg
 
-amount_img = 80    #How many genetic images
-amount_poly = 15    #How many polygons per image
+amount_img = 100    #How many genetic images
+amount_poly = 50    #How many polygons per image
 
 
-#img_name = raw_input("File name: ")
+img_name = raw_input("File name: ")
 
-src = Image.open("opera.png")
-src.save("mod.png")
+src = Image.open(img_name)
 width, height = src.size 
 
 gens = []
@@ -36,9 +35,11 @@ for i in range(0,amount_img):
                               random.randint(0,255),
                               random.randint(0,255)))
     gens[i].calc_val()
+total = 0
 inp = int(raw_input("Steps :"))
 while input != 0:
+    total = total + inp
     gens = GenImg.evolve(gens, inp)
+    gens[0].img.save("finish%d.png" % total) 
     inp = int(raw_input("Steps :"))
- 
 
