@@ -6,10 +6,30 @@ Created on 26.01.2012
 import Image, ImageChops, ImageDraw
 import math, random, threading
 
+class Gen:
+    _coordinates = []
+    _color = []
+    def __init__(self,coordinates,color):
+        self._color = color
+        self._coordinates = coordinates
+    def draw(self,img):
+        pass
+    def mutate(self,chance,impact):
+        pass
 
-class PolyGen(object):
+class PolyGen(Gen):
+    def draw(self,img):
+        draw = ImageDraw.Draw(img)
+        draw.polygon(self._coordinates, self._color, self._color)
+    def mutate(self,chance,impact):
+        if random.randint(0,100) < chance:
+            
+        
+'''
+class PolyGen(Gen):
     
     def __init__(self, src):
+
         self.polygons = []
         self.colors = []
         self.img = Image.new(src.mode, src.size, (255,255,255))
@@ -64,7 +84,7 @@ class PolyGen(object):
         ret.colors = self.colors[:]
         ret.redraw()
         return ret
-
+'''
 class GenThread (threading.Thread):
     def __init__(self,g):
         self.gs = g
@@ -77,32 +97,27 @@ class GenThread (threading.Thread):
         self.g = g
         
 def evolve(population, steps):
-    t = [0,0,0,0]
     for i in range(0,steps):
-        print i,": ",population[0].val
+        #print best Image value
+        if i % 10 == 0:
+            print i,": ",population[0].val
         
-        '''
-        stepsize = len(population)/4
-        for i in range(0,4):
-            t[i] = GenThread(population[stepsize*i:stepsize*(i+1)])
-            t[i].start()
-            
-        for tt in t:
-            tt.join()
-        '''
+        #mutate and recalculate value
         for i in range(0,len(population)):
             population[i].mutate()
             if population[i].recalc == 1:
                 population[i].calc_val()
         
+        #sort the population with best on top
         population = sorted(population, key=lambda gen: gen.val)
 
+        #create next generation
         for i in range(0,len(population)/4):
             population[i+len(population)/4] = population[i].pair(population[i+1])
             population[i+2*len(population)/4] = population[i].pair(population[i+1])
             population[i+3*len(population)/4] = population[i].pair(population[i+1])
             
     population = sorted(population, key=lambda gen: gen.val)
-    population[0].img.save("finish.png")   
+       
     return population
     
