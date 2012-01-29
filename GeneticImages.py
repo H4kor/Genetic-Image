@@ -12,29 +12,31 @@ import Image
 import random
 import GenImg
 
-amount_img = 100    #How many genetic images
-amount_poly = 50    #How many polygons per image
+amount_imgs = int(raw_input("Population size: "))    #How many genetic images
+amount_gens = int(raw_input("Polygons: "))    #How many polygons per image
 
 
+#getting image
 img_name = raw_input("File name: ")
-
 src = Image.open(img_name)
+
 width, height = src.size 
 
 gens = []
 
-for i in range(0,amount_img):
-    gens.append(GenImg.PolyGen(src))
+for i in range(0,amount_imgs):
+    gens.append(GenImg.GeneticImage(src))
 
-for i in range(0,amount_img): 
-    for k in range(0,amount_poly):
-        gens[i].add_polygon([random.randint(0,width),random.randint(0,height),
-                             random.randint(0,width),random.randint(0,height),
-                             random.randint(0,width),random.randint(0,height)],
-                             (random.randint(0,255),
-                              random.randint(0,255),
-                              random.randint(0,255)))
-    gens[i].calc_val()
+for i in range(0,amount_imgs): 
+    for k in range(0,amount_gens):
+        g = GenImg.PolyGen([random.randint(0,width),random.randint(0,height),
+                            random.randint(0,width),random.randint(0,height),
+                            random.randint(0,width),random.randint(0,height)],
+                            (random.randint(0,255),
+                            random.randint(0,255),
+                            random.randint(0,255)),src.size)
+        gens[i].addGen(g)
+    gens[i].recalc()
 total = 0
 inp = int(raw_input("Steps :"))
 while input != 0:

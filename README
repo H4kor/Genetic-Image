@@ -12,5 +12,6 @@ http://www.nihilogic.dk/labs/evolving-images/
 
 TODO:
 	*commenting
-	*excluding genes from indivual
 	*adding different types of genes
+	*finding better mutation
+	*smoother way to give image borders to gens
