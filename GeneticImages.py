@@ -12,41 +12,25 @@ import Image
 import random
 import GenImg
 
-debug = 1
+debug = 0
 
-amount_imgs = 300
+amount_imgs = 50
 amount_gens = 20
-img_name = "simple.png"
+img_name = "python.png"
 
 if debug == 0:
     amount_imgs = int(raw_input("Population size: "))    #How many genetic images
     amount_gens = int(raw_input("Polygons: "))    #How many polygons per image
     img_name = raw_input("File name: ")
 
-#getting image
-src = Image.open(img_name)
-
-width, height = src.size 
+GenImg.init_Evolution(amount_imgs,amount_gens,img_name)
 
 gens = []
 
 for i in range(0,amount_imgs):
-    gens.append(GenImg.GeneticImage(src))
+    gens.append(GenImg.GeneticImage())
     gens[i].recalc()
-'''for i in range(0,amount_imgs): 
-    for k in range(0,amount_gens):
-        g = GenImg.PolyGen([(random.randint(0,width),random.randint(0,height)),
-                            (random.randint(0,width),random.randint(0,height)),
-                            #(random.randint(0,width),random.randint(0,height)),
-                            #(random.randint(0,width),random.randint(0,height)),
-                            #(random.randint(0,width),random.randint(0,height))
-                            ],
-                            (random.randint(0,255),
-                            random.randint(0,255),
-                            random.randint(0,255),random.randint(0,255)),src.size)
-        gens[i].addGen(g)
-    
-'''
+
 total = 0
 steps = 100
 iterations_pro_step = 50
@@ -59,5 +43,6 @@ while steps != 0:
             total = total + iterations_pro_step
             gens = GenImg.evolve(gens, iterations_pro_step)
             gens[0].img.save("%05d.png" % total) 
+            print "%d: %f" %(total, gens[0].similarity)
     steps = int(raw_input("Steps :"))
 
