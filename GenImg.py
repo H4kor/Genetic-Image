@@ -3,6 +3,7 @@ Created on 26.01.2012
 
 @author: h4kor
 '''
+from time import time
 import Image, ImageChops, ImageDraw
 import math, random, threading
 
@@ -22,14 +23,23 @@ class PolyGen(Gen):
         draw = ImageDraw.Draw(img)
         draw.polygon(self._coordinates, self._color, self._color)
     def mutate(self,impact):
-        if(random.randint(1,2) == 1):
-                self._color = (random.randint(0,255),
+       if(random.randint(1,2) == 1):
+           self._color = (random.randint(0,255),
                                   random.randint(0,255),
                                   random.randint(0,255))
-        else:
-            self._coordinates = [random.randint(0,self._size[0]),random.randint(0,self._size[1]),
-                                 random.randint(0,self._size[0]),random.randint(0,self._size[1]),
-                                 random.randint(0,self._size[0]),random.randint(0,self._size[1])]
+       else:
+           r = random.randint(0,100)
+           if r < 10:
+               inc = 1
+           elif r > 95 and len(self._coordinates) > 2:
+               inc = -1
+           else:
+               inc = 0
+           coord = []
+           for i in range(0,len(self._coordinates)+inc):
+              coord.append((random.randint(0,self._size[0]),random.randint(0,self._size[1])))
+              
+           self._coordinates = coord
     def copy(self):
         n = PolyGen(self._coordinates[:],self._color[:],self._size)
         return n     
@@ -43,6 +53,14 @@ class GeneticImage:
         self._recalc = 1
         self.reference_img = src
         self.img = Image.new(src.mode, src.size, (255,255,255))
+        g = PolyGen([(random.randint(0,self.img.size[0]),random.randint(0,self.img.size[1])),
+                         (random.randint(0,self.img.size[0]),random.randint(0,self.img.size[1]))],
+                         (random.randint(0,255), random.randint(0,255),random.randint(0,255)),src.size)
+        self.addGen(g)
+        g = PolyGen([(random.randint(0,self.img.size[0]),random.randint(0,self.img.size[1])),
+                         (random.randint(0,self.img.size[0]),random.randint(0,self.img.size[1]))],
+                         (random.randint(0,255), random.randint(0,255),random.randint(0,255)),src.size)
+        self.addGen(g)
     def addGen(self,gen):
         self._gens.append(gen)
         gen.draw(self.img)
@@ -63,79 +81,25 @@ class GeneticImage:
     def mutate(self):
         impact = 0.2
         chance = 5
+        if random.randint < 50:
+            g = PolyGen([(random.randint(0,self.img.size[0]),random.randint(0,self.img.size[1])),
+                         (random.randint(0,self.img.size[0]),random.randint(0,self.img.size[1]))],
+                         (random.randint(0,255), random.randint(0,255),random.randint(0,255)),src.size)
+            self.addGen(g)
         for gen in self._gens:
             if(random.randint(0,100) < chance):
                 gen.mutate(impact)
         self.redraw()
     def pair(self, partner):
-        r = random.sample(range(0,len(self._gens)),len(self._gens)/2)
+        x = random.sample(self._gens,len(self._gens)/2)
+        y = random.sample(partner._gens,len(partner._gens)/2)
         child = GeneticImage(self.reference_img)
-        for i in range(0,len(self._gens)):
-            if i in r:
-                child.addGen(self._gens[i].copy())
-            else:
-                child.addGen(partner._gens[i].copy())
-        return child
-'''
-class PolyGen(Gen):
-    
-    def __init__(self, src):
+        for part in x:
+            child.addGen(part.copy())
+        for part in y:
+            child.addGen(part.copy())
 
-        self.polygons = []
-        self.colors = []
-        self.img = Image.new(src.mode, src.size, (255,255,255))
-        self.val = 0
-        self.src = src
-        self.recalc = 1
-    def calc_val(self):
-        diff = ImageChops.difference(self.img, self.src)
-        h = diff.histogram()
-        sq = (value*(idx**2) for idx, value in enumerate(h))
-        sum_of_squares = sum(sq)
-        self.val = math.sqrt(sum_of_squares/float(self.img.size[0] * self.img.size[1]))
-        self.recalc = 0
-    def add_polygon(self,polygon,color):
-        self.polygons.append(polygon)
-        self.colors.append(color)
-        draw = ImageDraw.Draw(self.img)
-        draw.polygon(polygon, color, color)
-        self.recalc = 1
-    def redraw(self):
-        self.img = Image.new(self.src.mode, self.src.size, (255,255,255))
-        draw = ImageDraw.Draw(self.img)
-        for i in range(0,len(self.polygons)):
-            draw.polygon(self.polygons[i], self.colors[i], self.colors[i])
-        self.recalc = 1
-    def mutate(self):
-        if random.randint(0,100) < 20:
-            if random.randint(0,100) < 50:
-                self.polygons[random.randint(0,len(self.polygons)-1)] = [random.randint(0,self.src.size[0]),random.randint(0,self.src.size[1]),
-                                                       random.randint(0,self.src.size[0]),random.randint(0,self.src.size[1]),
-                                                       random.randint(0,self.src.size[0]),random.randint(0,self.src.size[1])]
-            else:
-                self.colors[random.randint(0,len(self.colors)-1)] = (random.randint(0,255),
-                                                       random.randint(0,255),
-                                                       random.randint(0,255))
-            self.redraw()
-            self.recalc = 1
 
-    def pair(self, partner):
-        self.r = random.sample(range(0,len(self.polygons)),len(self.polygons)/2)
-        child = PolyGen(self.src)
-        for i in range(0,len(self.polygons)):
-            if i in self.r:
-                child.add_polygon(self.polygons[i],self.colors[i])
-            else:
-                child.add_polygon(partner.polygons[i],partner.colors[i])
-        return child
-    
-    def copy(self):
-        ret = PolyGen(self.src);
-        ret.polygons = self.polygons[:]
-        ret.colors = self.colors[:]
-        ret.redraw()
-        return ret
-'''
 
         
 def evolve(population, steps):
@@ -145,10 +109,10 @@ def evolve(population, steps):
             print i,": ",population[0].similarity
         
         #mutate and recalculate value
-        for i in range(0,len(population)):
-            population[i].mutate()
-            population[i].recalc()
-                    
+        for i in population:
+            i.mutate()
+            i.recalc()
+
         #sort the population with best on top
         population = sorted(population, key=lambda gen: gen.similarity)
 
@@ -157,7 +121,7 @@ def evolve(population, steps):
             population[i+len(population)/4] = population[i].pair(population[i+1])
             population[i+2*len(population)/4] = population[i].pair(population[i+1])
             population[i+3*len(population)/4] = population[i].pair(population[i+1])
-            
+
     population = sorted(population, key=lambda gen: gen.similarity)
        
     return population

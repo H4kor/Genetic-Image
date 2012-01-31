@@ -12,12 +12,18 @@ import Image
 import random
 import GenImg
 
-amount_imgs = int(raw_input("Population size: "))    #How many genetic images
-amount_gens = int(raw_input("Polygons: "))    #How many polygons per image
+debug = 1
 
+amount_imgs = 300
+amount_gens = 20
+img_name = "simple.png"
+
+if debug == 0:
+    amount_imgs = int(raw_input("Population size: "))    #How many genetic images
+    amount_gens = int(raw_input("Polygons: "))    #How many polygons per image
+    img_name = raw_input("File name: ")
 
 #getting image
-img_name = raw_input("File name: ")
 src = Image.open(img_name)
 
 width, height = src.size 
@@ -26,22 +32,32 @@ gens = []
 
 for i in range(0,amount_imgs):
     gens.append(GenImg.GeneticImage(src))
-
-for i in range(0,amount_imgs): 
+    gens[i].recalc()
+'''for i in range(0,amount_imgs): 
     for k in range(0,amount_gens):
-        g = GenImg.PolyGen([random.randint(0,width),random.randint(0,height),
-                            random.randint(0,width),random.randint(0,height),
-                            random.randint(0,width),random.randint(0,height)],
+        g = GenImg.PolyGen([(random.randint(0,width),random.randint(0,height)),
+                            (random.randint(0,width),random.randint(0,height)),
+                            #(random.randint(0,width),random.randint(0,height)),
+                            #(random.randint(0,width),random.randint(0,height)),
+                            #(random.randint(0,width),random.randint(0,height))
+                            ],
                             (random.randint(0,255),
                             random.randint(0,255),
-                            random.randint(0,255)),src.size)
+                            random.randint(0,255),random.randint(0,255)),src.size)
         gens[i].addGen(g)
-    gens[i].recalc()
+    
+'''
 total = 0
-inp = int(raw_input("Steps :"))
-while input != 0:
-    total = total + inp
-    gens = GenImg.evolve(gens, inp)
-    gens[0].img.save("finish%d.png" % total) 
-    inp = int(raw_input("Steps :"))
+steps = 100
+iterations_pro_step = 50
+if debug == 0:
+    steps = int(raw_input("Steps :"))
+    iterations_pro_step = int(raw_input("Iterations pro step : "))
+while steps != 0:
+    for k in range(0,steps):
+        for i in range(0,iterations_pro_step):
+            total = total + iterations_pro_step
+            gens = GenImg.evolve(gens, iterations_pro_step)
+            gens[0].img.save("%05d.png" % total) 
+    steps = int(raw_input("Steps :"))
 
